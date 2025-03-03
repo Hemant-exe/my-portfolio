@@ -70,7 +70,7 @@ To run this project locally, follow these steps:
    ```
 
 4. **Open your browser:**
-   Visit http://localhost:3000 to see the portfolio website in action.
+   Visit https://hemant-raj.vercel.app/ to see the portfolio website in action.
 
 ## Usage
 
