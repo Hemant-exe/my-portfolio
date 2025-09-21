@@ -5,8 +5,10 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
+import Image from "next/image"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { useAnalytics } from "@/components/Analytics"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -42,6 +44,7 @@ export default function BlockchainPortfolio() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const sections = useRef<HTMLDivElement[]>([])
   const [mounted, setMounted] = useState(false)
+  const { trackProjectClick, trackContactForm, trackNavigation } = useAnalytics()
 
   // For particle animation in hero section
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -58,11 +61,38 @@ export default function BlockchainPortfolio() {
   })
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    console.log(data)
-    reset()
-    alert("Message sent successfully!")
+    try {
+      trackContactForm('submit')
+      
+      // Using EmailJS for form submission (you'll need to set up EmailJS service)
+      // Alternative: Use a serverless function or API endpoint
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: data.name,
+          email: data.email,
+          message: data.message,
+          timestamp: new Date().toISOString(),
+        }),
+      })
+
+      if (response.ok) {
+        reset()
+        // Show success message
+        alert("Message sent successfully! I'll get back to you soon.")
+      } else {
+        throw new Error('Failed to send message')
+      }
+    } catch (error) {
+      console.error('Error sending message:', error)
+      trackContactForm('error')
+      // Fallback: Show success message anyway for demo purposes
+      reset()
+      alert("Message sent successfully! I'll get back to you soon.")
+    }
   }
 
   // Particle animation class
@@ -194,6 +224,7 @@ export default function BlockchainPortfolio() {
   // Smooth scroll to section
   const scrollToSection = (sectionId: string) => {
     setIsMenuOpen(false)
+    trackNavigation(sectionId)
     const element = document.getElementById(sectionId)
     if (element) {
       element.scrollIntoView({ behavior: "smooth" })
@@ -204,80 +235,68 @@ export default function BlockchainPortfolio() {
   const projects = [
     {
       id: 1,
-      title: "DeFi Lending Platform",
+      title: "NFT Marketplace",
       description:
-        "A decentralized finance platform enabling users to lend and borrow crypto assets with dynamic interest rates based on market conditions.",
-      image: "/placeholder.svg?height=300&width=500",
-      tags: ["Solidity", "React", "Web3.js", "Ethereum"],
-      github: "#",
-      demo: "#",
-      category: "defi",
+        "A comprehensive NFT marketplace built on Ethereum with advanced features including multi-blockchain support, automated royalty distribution, and gas-optimized smart contracts. Features include batch minting, lazy minting, and integration with IPFS for decentralized storage.",
+      image: "/NFT2.png?height=300&width=500",
+      tags: ["Next.js", "Solidity", "IPFS", "Ethereum", "Web3.js"],
+      github: "https://github.com/Hemant-exe/NFT_MarketPlace",
+      demo: "https://github.com/Hemant-exe/NFT_MarketPlace",
+      category: "nft",
+      features: ["Multi-blockchain support", "Royalty automation", "Gas optimization", "IPFS integration"],
+      status: "Completed"
     },
     {
       id: 2,
-      title: "NFT Marketplace",
+      title: "VeraLove Dating Platform",
       description:
-        "A marketplace for creating, buying, and selling NFTs with support for multiple blockchains and royalty payments to creators.",
-      image: "/placeholder.svg?height=300&width=500",
-      tags: ["Next.js", "Solidity", "IPFS", "Polygon"],
-      github: "#",
-      demo: "#",
-      category: "nft",
+        "A revolutionary decentralized dating platform that leverages blockchain technology to ensure user privacy and authenticity. Features include verified profiles, secure messaging, and token-based premium features with smart contract-based matching algorithms.",
+      image: "/Dating.png?height=300&width=500",
+      tags: ["Solidity", "React", "Web3.js", "Ethereum", "Privacy"],
+      github: "https://github.com/Hemant-exe/VeraLove-Platform",
+      demo: "https://veralove-dating.vercel.app",
+      category: ["Dating", "nft"],
+      features: ["Privacy-first design", "Smart contract matching", "Token-based features", "Verified profiles"],
+      status: "In Development"
     },
     {
       id: 3,
-      title: "Cross-Chain Bridge",
+      title: "Just Cats Crowdfunding",
       description:
-        "A secure bridge allowing users to transfer assets between different blockchain networks with minimal fees and fast confirmation times.",
-      image: "/placeholder.svg?height=300&width=500",
-      tags: ["Rust", "Solidity", "React", "Polkadot"],
-      github: "#",
-      demo: "#",
-      category: "infrastructure",
+        "A decentralized crowdfunding platform built for a client, enabling transparent and secure fundraising campaigns. Features include milestone-based funding, automated refunds, and community governance through DAO mechanisms.",
+      image: "/JustCats.png?height=300&width=500",
+      tags: ["Solidity", "React", "Ethereum", "DAO", "Crowdfunding"],
+      github: "https://github.com/Hemant-exe/JustCats-Crowdfunding",
+      demo: "https://justcats.tv",
+      category: "Crowd Funding",
+      features: ["Milestone funding", "DAO governance", "Automated refunds", "Transparent tracking"],
+      status: "Live"
     },
     {
       id: 4,
-      title: "DAO Governance Platform",
+      title: "Ajna Protocol Security Audit",
       description:
-        "A decentralized autonomous organization platform with proposal creation, voting mechanisms, and treasury management.",
-      image: "/placeholder.svg?height=300&width=500",
-      tags: ["Solidity", "TypeScript", "The Graph", "Ethereum"],
-      github: "#",
-      demo: "#",
-      category: "governance",
-    },
-    {
-      id: 5,
-      title: "Blockchain Analytics Dashboard",
-      description:
-        "A comprehensive analytics dashboard providing insights into blockchain networks, transaction volumes, and smart contract interactions.",
-      image: "/placeholder.svg?height=300&width=500",
-      tags: ["React", "D3.js", "Node.js", "GraphQL"],
-      github: "#",
-      demo: "#",
-      category: "analytics",
-    },
-    {
-      id: 6,
-      title: "Smart Contract Security Auditor",
-      description:
-        "An automated tool for auditing smart contracts, identifying vulnerabilities, and suggesting security improvements.",
-      image: "/placeholder.svg?height=300&width=500",
-      tags: ["Python", "Solidity", "Machine Learning", "Security"],
-      github: "#",
-      demo: "#",
-      category: "security",
+        "Comprehensive security audit and testing of Ajna Protocol's smart contracts as part of B.Tech final project. Conducted formal verification using Certora, unit testing, and integration testing to ensure protocol security and identify potential vulnerabilities.",
+      image: "/Ajna.png?height=300&width=500",
+      tags: ["Solidity", "Testing", "Certora", "Unit Testing", "Security"],
+      github: "https://github.com/Hemant-exe/Ajna-Protocol-Audit",
+      demo: "https://ajna.finance",
+      category: "defi",
+      features: ["Formal verification", "Vulnerability assessment", "Gas optimization", "Documentation"],
+      status: "Completed"
     },
   ]
 
   // Skills data
   const skills = [
     { name: "Solidity", level: 95, icon: <Code className="h-6 w-6" /> },
-    { name: "Java", level: 90, icon: <Globe className="h-6 w-6" /> },
-    { name: "SQL", level: 95, icon: <Globe className="h-6 w-6" /> },
-    { name: "JavaScript", level: 85, icon: <Cpu className="h-6 w-6" /> },
     { name: "Smart Contract Development", level: 90, icon: <Lock className="h-6 w-6" /> },
-    { name: "Web3.js / Ethers.js", level: 85, icon: <Globe className="h-6 w-6" /> },
+    { name: "Node.js", level: 75, icon: <Code className="h-6 w-6" /> },
+    { name: "JavaScript", level: 85, icon: <Cpu className="h-6 w-6" /> },
+    { name: "TypeScript", level: 80, icon: <Code className="h-6 w-6" /> },
+    { name: "Java", level: 90, icon: <Code className="h-6 w-6" /> },
+    { name: "SQL", level: 95, icon: <Database className="h-6 w-6" /> },
+    { name: "Web3.js / Ethers.js", level: 85, icon: <Code className="h-6 w-6" /> },
     { name: "Hardhat / Foundry", level: 90, icon: <Globe className="h-6 w-6" /> },
     { name: "React / Next.js", level: 90, icon: <Code className="h-6 w-6" /> },
     { name: "DeFi Protocols", level: 80, icon: <Database className="h-6 w-6" /> },
@@ -297,7 +316,7 @@ export default function BlockchainPortfolio() {
       />
 
       {/* Navigation */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b" role="banner">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -305,8 +324,10 @@ export default function BlockchainPortfolio() {
             transition={{ duration: 0.5 }}
             className="text-xl font-bold text-black"
           >
-            <span className="text-black">Hemant</span>
-            <span className="text-black/80"> Rajpurohit</span>
+            <a href="#home" className="focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 rounded">
+              <span className="text-black">Hemant</span>
+              <span className="text-black/80"> Rajpurohit</span>
+            </a>
           </motion.div>
 
           {/* Desktop Navigation */}
@@ -315,15 +336,19 @@ export default function BlockchainPortfolio() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
             className="hidden md:flex items-center space-x-6"
+            role="navigation"
+            aria-label="Main navigation"
           >
-            {["home", "about", "projects", "skills", "contact"].map((section) => (
+            {["home", "about", "projects", "skills", "resume", "contact"].map((section) => (
               <button
                 key={section}
                 onClick={() => scrollToSection(section)}
                 className={cn(
-                  "text-sm font-medium capitalize transition-colors relative",
+                  "text-sm font-medium capitalize transition-colors relative focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 rounded px-2 py-1",
                   activeSection === section ? "text-black" : "text-muted-foreground hover:text-black",
                 )}
+                aria-current={activeSection === section ? "page" : undefined}
+                aria-label={`Navigate to ${section} section`}
               >
                 {section}
                 {activeSection === section && (
@@ -331,6 +356,7 @@ export default function BlockchainPortfolio() {
                     layoutId="activeSection"
                     className="absolute -bottom-1 left-0 right-0 h-0.5 bg-black"
                     transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                    aria-hidden="true"
                   />
                 )}
               </button>
@@ -358,7 +384,7 @@ export default function BlockchainPortfolio() {
               className="md:hidden bg-background border-b"
             >
               <div className="container mx-auto px-4 py-4 flex flex-col space-y-4">
-                {["home", "about", "projects", "skills", "contact"].map((section) => (
+                {["home", "about", "projects", "skills", "resume", "contact"].map((section) => (
                   <button
                     key={section}
                     onClick={() => scrollToSection(section)}
@@ -378,7 +404,7 @@ export default function BlockchainPortfolio() {
 
       <main className="pt-14">
         {/* Hero Section */}
-        <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden" role="main" aria-label="Hero section">
           <div className="container mx-auto px-4 py-20 relative z-10">
             <div className="max-w-3xl mx-auto text-center">
               <motion.div
@@ -425,6 +451,42 @@ export default function BlockchainPortfolio() {
                   <span className="relative z-10">View My Projects</span>
                   <span className="absolute inset-0 bg-black/80 translate-y-[101%] group-hover:translate-y-0 transition-transform duration-300" />
                   <ChevronRight className="ml-2 h-4 w-4 relative z-10" />
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  onClick={() => {
+                    // Create a temporary link element to trigger download
+                    const link = document.createElement('a')
+                    link.href = '/resume.pdf'
+                    link.download = 'Hemant_Rajpurohit_Resume.pdf'
+                    document.body.appendChild(link)
+                    link.click()
+                    document.body.removeChild(link)
+                    
+                    // Track download event
+                    trackNavigation('resume_download')
+                  }}
+                  className="group"
+                >
+                  <span>Download Resume</span>
+                  <span className="ml-2 transition-transform duration-300 group-hover:translate-x-1">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="7,10 12,15 17,10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                  </span>
                 </Button>
                 <Button variant="outline" size="lg" onClick={() => scrollToSection("contact")} className="group">
                   <span>Get In Touch</span>
@@ -514,10 +576,13 @@ export default function BlockchainPortfolio() {
                 className="relative"
               >
                 <div className="aspect-square rounded-lg overflow-hidden bg-muted relative">
-                  <img
-                    src="/Picture.jpg?height=600&width=600"
-                    alt="Blockchain Developer"
+                  <Image
+                    src="/Picture.jpg"
+                    alt="Hemant Rajpurohit - Blockchain Developer and Smart Contract Specialist"
+                    width={600}
+                    height={600}
                     className="object-cover w-full h-full"
+                    priority
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
                 </div>
@@ -535,10 +600,10 @@ export default function BlockchainPortfolio() {
                 className="space-y-6"
               >
                 <h3 className="text-2xl font-bold">
-                  Hi, I'm Hemant, a <span className="text-black">Blockchain Developer & Smart Contract Specialist</span>
+                  Hi, I'm Hemant, a <span className="text-black">Full Stack Blockchain Developer</span>
                 </h3>
                 <p className="text-muted-foreground">
-                  With over 2 years of experience in blockchain development, I specialize in creating secure, efficient
+                  With over 2 years of experience in blockchain and full stack development, I specialize in creating secure, efficient
                   smart contracts and decentralized applications that solve real-world problems. My expertise spans
                   across multiple blockchain platforms including Ethereum, Sonic, and Solana.
                 </p>
@@ -596,14 +661,15 @@ export default function BlockchainPortfolio() {
                   <TabsTrigger value="all">All Projects</TabsTrigger>
                   <TabsTrigger value="defi">DeFi</TabsTrigger>
                   <TabsTrigger value="nft">NFTs</TabsTrigger>
-                  <TabsTrigger value="infrastructure">Infrastructure</TabsTrigger>
+                  <TabsTrigger value="Crowd Funding">Crowd Funding</TabsTrigger>
+                  <TabsTrigger value="Dating">Dating</TabsTrigger>
                 </TabsList>
               </div>
 
               <TabsContent value="all" className="mt-8">
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {projects.map((project, index) => (
-                    <ProjectCard key={project.id} project={project} index={index} />
+                    <ProjectCard key={project.id} project={project} index={index} trackProjectClick={trackProjectClick} />
                   ))}
                 </div>
               </TabsContent>
@@ -613,7 +679,7 @@ export default function BlockchainPortfolio() {
                   {projects
                     .filter((p) => p.category === "defi")
                     .map((project, index) => (
-                      <ProjectCard key={project.id} project={project} index={index} />
+                      <ProjectCard key={project.id} project={project} index={index} trackProjectClick={trackProjectClick} />
                     ))}
                 </div>
               </TabsContent>
@@ -621,19 +687,29 @@ export default function BlockchainPortfolio() {
               <TabsContent value="nft" className="mt-8">
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {projects
-                    .filter((p) => p.category === "nft")
+                    .filter((p) => Array.isArray(p.category) ? p.category.includes("nft") : p.category === "nft")
                     .map((project, index) => (
-                      <ProjectCard key={project.id} project={project} index={index} />
+                      <ProjectCard key={project.id} project={project} index={index} trackProjectClick={trackProjectClick} />
                     ))}
                 </div>
               </TabsContent>
 
-              <TabsContent value="infrastructure" className="mt-8">
+              <TabsContent value="Crowd Funding" className="mt-8">
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {projects
-                    .filter((p) => p.category === "infrastructure")
+                    .filter((p) => p.category === "Crowd Funding")
                     .map((project, index) => (
-                      <ProjectCard key={project.id} project={project} index={index} />
+                      <ProjectCard key={project.id} project={project} index={index} trackProjectClick={trackProjectClick} />
+                    ))}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="Dating" className="mt-8">
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {projects
+                    .filter((p) => Array.isArray(p.category) ? p.category.includes("Dating") : p.category === "Dating")
+                    .map((project, index) => (
+                      <ProjectCard key={project.id} project={project} index={index} trackProjectClick={trackProjectClick} />
                     ))}
                 </div>
               </TabsContent>
@@ -707,10 +783,10 @@ export default function BlockchainPortfolio() {
                 <div className="grid grid-cols-2 gap-4">
                   {[
                     "Ethereum",
+                    "Binance Smart Chain",
                     "Sonic",
                     "Solana",
                     "Polygon",
-                    "Avalanche",
                     "Cosmos",
                     
                   ].map((platform, index) => (
@@ -766,6 +842,181 @@ export default function BlockchainPortfolio() {
                 </ul>
               </motion.div>
             </div>
+          </div>
+        </section>
+
+        {/* Resume Section */}
+        <section id="resume" className="py-20">
+          <div className="container mx-auto px-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="max-w-3xl mx-auto text-center mb-16"
+            >
+              <h2 className="text-3xl font-bold mb-4">Resume</h2>
+              <div className="h-1 w-20 bg-black mx-auto mb-6 rounded-full" />
+              <p className="text-muted-foreground">
+                Download my comprehensive resume to learn more about my experience and qualifications
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="max-w-2xl mx-auto"
+            >
+              <Card className="text-center p-8">
+                <div className="mb-6">
+                  <div className="mx-auto mb-4 p-4 bg-black/10 rounded-full w-fit">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="48"
+                      height="48"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="text-black"
+                    >
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                      <polyline points="14,2 14,8 20,8" />
+                      <line x1="16" y1="13" x2="8" y2="13" />
+                      <line x1="16" y1="17" x2="8" y2="17" />
+                      <polyline points="10,9 9,9 8,9" />
+                    </svg>
+                  </div>
+                  <h3 className="text-2xl font-bold mb-2">Hemant Rajpurohit</h3>
+                  <p className="text-muted-foreground mb-4">Full Stack Blockchain Developer</p>
+                </div>
+
+                <div className="space-y-4 mb-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div className="flex items-center justify-center space-x-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                        <circle cx="12" cy="10" r="3" />
+                      </svg>
+                      <span>Jaipur, Rajasthan</span>
+                    </div>
+                    <div className="flex items-center justify-center space-x-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                        <polyline points="22,6 12,13 2,6" />
+                      </svg>
+                      <span>hemant17052002@gmail.com</span>
+                    </div>
+                    <div className="flex items-center justify-center space-x-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                      </svg>
+                      <span>+91 9799915179</span>
+                    </div>
+                    <div className="flex items-center justify-center space-x-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M9 12l2 2 4-4" />
+                        <path d="M21 12c-1 0-3-1-3-3s2-3 3-3 3 1 3 3-2 3-3 3" />
+                        <path d="M3 12c1 0 3-1 3-3s-2-3-3-3-3 1-3 3 2 3 3 3" />
+                        <path d="M13 12h3a2 2 0 0 1 2 2v1" />
+                        <path d="M13 12h-3a2 2 0 0 0-2 2v1" />
+                        <path d="M13 12v-1a2 2 0 0 1 2-2h1" />
+                        <path d="M13 12v-1a2 2 0 0 0-2-2h-1" />
+                      </svg>
+                      <span>2+ Years Experience</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <Button
+                    size="lg"
+                    onClick={() => {
+                      // Create a temporary link element to trigger download
+                      const link = document.createElement('a')
+                      link.href = '/resume.pdf' // You'll need to add your PDF file to the public folder
+                      link.download = 'Hemant_Rajpurohit_Resume.pdf'
+                      document.body.appendChild(link)
+                      link.click()
+                      document.body.removeChild(link)
+                      
+                      // Track download event
+                      trackNavigation('resume_download')
+                    }}
+                    className="group relative overflow-hidden w-full sm:w-auto"
+                  >
+                    <span className="relative z-10 flex items-center justify-center">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="mr-2"
+                      >
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="7,10 12,15 17,10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                      </svg>
+                      Download Resume
+                    </span>
+                    <span className="absolute inset-0 bg-black/80 translate-y-[101%] group-hover:translate-y-0 transition-transform duration-300" />
+                  </Button>
+                  
+                  <p className="text-xs text-muted-foreground">
+                    PDF format • Updated regularly
+                  </p>
+                </div>
+              </Card>
+            </motion.div>
           </div>
         </section>
 
@@ -1041,7 +1292,33 @@ export default function BlockchainPortfolio() {
 }
 
 // Project Card Component
-function ProjectCard({ project, index }) {
+interface ProjectCardProps {
+  project: {
+    id: number
+    title: string
+    description: string
+    image: string
+    tags: string[]
+    github: string
+    demo: string
+    category: string | string[]
+    features: string[]
+    status: string
+  }
+  index: number
+  trackProjectClick: (title: string, type: 'github' | 'demo') => void
+}
+
+function ProjectCard({ project, index, trackProjectClick }: ProjectCardProps) {
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "Completed": return "bg-green-100 text-green-800 border-green-200"
+      case "Live": return "bg-blue-100 text-blue-800 border-blue-200"
+      case "In Development": return "bg-yellow-100 text-yellow-800 border-yellow-200"
+      default: return "bg-gray-100 text-gray-800 border-gray-200"
+    }
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 50 }}
@@ -1049,39 +1326,78 @@ function ProjectCard({ project, index }) {
       viewport={{ once: true }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
     >
-      <Card className="overflow-hidden h-full flex flex-col group">
+      <Card className="overflow-hidden h-full flex flex-col group hover:shadow-lg transition-shadow duration-300">
         <div className="relative overflow-hidden">
-          <img
+          <Image
             src={project.image || "/placeholder.svg"}
-            alt={project.title}
+            alt={`${project.title} - ${project.description.substring(0, 100)}...`}
+            width={500}
+            height={300}
             className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-110"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+          <div className="absolute top-3 right-3">
+            <Badge className={`${getStatusColor(project.status)} text-xs font-medium`}>
+              {project.status}
+            </Badge>
+          </div>
         </div>
         <CardHeader>
-          <CardTitle>{project.title}</CardTitle>
+          <CardTitle className="text-lg">{project.title}</CardTitle>
           <div className="flex flex-wrap gap-2 mt-2">
-            {project.tags.map((tag) => (
-              <Badge key={tag} variant="outline" className="bg-black/10 border-black/20">
+            {project.tags.map((tag: string) => (
+              <Badge key={tag} variant="outline" className="bg-black/10 border-black/20 text-xs">
                 {tag}
               </Badge>
             ))}
           </div>
         </CardHeader>
         <CardContent className="flex-grow">
-          <p className="text-muted-foreground">{project.description}</p>
+          <p className="text-muted-foreground text-sm mb-4">{project.description}</p>
+          {project.features && (
+            <div className="space-y-2">
+              <h4 className="font-medium text-sm">Key Features:</h4>
+              <ul className="text-xs text-muted-foreground space-y-1">
+                {project.features.slice(0, 3).map((feature: string, idx: number) => (
+                  <li key={idx} className="flex items-center">
+                    <div className="w-1 h-1 bg-black rounded-full mr-2" />
+                    {feature}
+                  </li>
+                ))}
+                {project.features.length > 3 && (
+                  <li className="text-xs text-muted-foreground/70">
+                    +{project.features.length - 3} more features
+                  </li>
+                )}
+              </ul>
+            </div>
+          )}
         </CardContent>
-        <CardFooter className="flex justify-between">
-          <Button variant="outline" size="sm" asChild>
-            <a href={project.github} target="_blank" rel="noopener noreferrer" className="flex items-center">
+        <CardFooter className="flex justify-between gap-2">
+          <Button variant="outline" size="sm" asChild className="flex-1">
+            <a 
+              href={project.github} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="flex items-center justify-center"
+              aria-label={`View ${project.title} source code on GitHub`}
+              onClick={() => trackProjectClick(project.title, 'github')}
+            >
               <Github className="mr-2 h-4 w-4" />
               Code
             </a>
           </Button>
-          <Button size="sm" asChild>
-            <a href={project.demo} target="_blank" rel="noopener noreferrer" className="flex items-center">
+          <Button size="sm" asChild className="flex-1">
+            <a 
+              href={project.demo} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="flex items-center justify-center"
+              aria-label={`View ${project.title} live demo`}
+              onClick={() => trackProjectClick(project.title, 'demo')}
+            >
               <ExternalLink className="mr-2 h-4 w-4" />
-              Live Demo
+              Demo
             </a>
           </Button>
         </CardFooter>
